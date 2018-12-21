@@ -7,6 +7,7 @@ ethTool arg [params]
 arg:
 	 help
 	 genKey
+	 hash	 msg
 	 sign	 msg privateKey
 	 verify	 msg signature  address
 ```
