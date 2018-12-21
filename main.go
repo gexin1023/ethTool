@@ -27,6 +27,7 @@ func help() {
 	fmt.Println("arg:")
 	fmt.Println("\t help")
 	fmt.Println("\t genKey")
+	fmt.Println("\t hash\t msg")
 	fmt.Println("\t sign\t msg privateKey")
 	fmt.Println("\t verify\t msg signature  address")
 }
@@ -36,6 +37,12 @@ func parseArg(arg string, params []string) {
 		help()
 	} else if arg == "genKey" {
 		genKey()
+	} else if arg == "hash" {
+		if len(params) < 1 {
+			fmt.Println("hash need input")
+			return
+		}
+		sha3Hash(params[0])
 	} else if arg == "sign" {
 		if len(params) != 2 {
 			fmt.Println("sign need 2 string params")
@@ -51,6 +58,14 @@ func parseArg(arg string, params []string) {
 	} else {
 		help()
 	}
+}
+
+func sha3Hash(msg string) string {
+	fmt.Println("========== sha3-hash ==========")
+
+	ret := hex.EncodeToString(crypto.Keccak256([]byte(msg)))
+	fmt.Println("hash of ", msg, ": ", ret)
+	return ret
 }
 
 func genKey() (prv, pub, addr string) {
@@ -78,9 +93,15 @@ func genKey() (prv, pub, addr string) {
 func sign(msg, prv string) (sig string) {
 	fmt.Println("========== sign ==========")
 
+	if prv[0:2] == "0x" {
+		prv = prv[2:]
+	}
+
 	prvK, _ := crypto.HexToECDSA(prv)
 
 	h := crypto.Keccak256([]byte(msg))
+
+	fmt.Println("the hash of msg: ", hex.EncodeToString(h))
 
 	sigBytes, _ := crypto.Sign(h, prvK)
 
@@ -95,6 +116,10 @@ func verify(msg, sig, addr string) (ret string) {
 	fmt.Println("========== verify ==========")
 
 	hashBytes := crypto.Keccak256([]byte(msg))
+
+	if sig[0:2] == "0x" {
+		sig = sig[2:]
+	}
 
 	sigBytes, err := hex.DecodeString(sig)
 	if err != nil {
