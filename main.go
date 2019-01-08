@@ -27,9 +27,10 @@ func help() {
 	fmt.Println("arg:")
 	fmt.Println("\t help")
 	fmt.Println("\t genKey")
-	fmt.Println("\t hash\t msg")
-	fmt.Println("\t sign\t msg privateKey")
-	fmt.Println("\t verify\t msg signature  address")
+	fmt.Println("\t prvToPub\t privateKey")
+	fmt.Println("\t hash\t\t msg")
+	fmt.Println("\t sign\t\t msg privateKey")
+	fmt.Println("\t verify\t\t msg signature  address")
 }
 
 func parseArg(arg string, params []string) {
@@ -37,6 +38,12 @@ func parseArg(arg string, params []string) {
 		help()
 	} else if arg == "genKey" {
 		genKey()
+	} else if arg == "prvToPub" {
+		if len(params) < 1 {
+			fmt.Println("prvkey need input")
+			return
+		}
+		prvToPub(params[0])
 	} else if arg == "hash" {
 		if len(params) < 1 {
 			fmt.Println("hash need input")
@@ -88,6 +95,32 @@ func genKey() (prv, pub, addr string) {
 	fmt.Println("address: ", addr)
 
 	return prv, pub, addr
+}
+
+func prvToPub(prv string) {
+	if prv[:2] == "0x" {
+		prv = prv[2:]
+	}
+
+	prvBytes, err := hex.DecodeString(prv)
+	if err != nil {
+		fmt.Println("decode private key string error")
+		return
+	}
+
+	prvK, err := crypto.ToECDSA(prvBytes)
+	if err != nil {
+		fmt.Println("bytes to private key error")
+		return
+	}
+
+	prvStr := hex.EncodeToString(crypto.FromECDSA(prvK))
+	pubStr := hex.EncodeToString(crypto.FromECDSAPub(&prvK.PublicKey))
+	addr := crypto.PubkeyToAddress(prvK.PublicKey)
+
+	fmt.Println("privateKey: ", prvStr)
+	fmt.Println("publicKey: ", pubStr)
+	fmt.Println("address: ", addr.String())
 }
 
 func sign(msg, prv string) (sig string) {
